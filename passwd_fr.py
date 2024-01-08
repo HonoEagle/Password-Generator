@@ -2,7 +2,7 @@ import random
 import string
 import os
 
-def generer_mot_de_passe(debut, fin, longueur, inclure_majuscules, inclure_minuscules, inclure_chiffres, inclure_speciaux):
+def generer_mot_de_passe(debut, fin, longueur, inclure_majuscules, inclure_minuscules, inclure_chiffres, inclure_caracteres_speciaux):
     caracteres_centraux = ''
     if inclure_majuscules:
         caracteres_centraux += string.ascii_uppercase
@@ -10,7 +10,7 @@ def generer_mot_de_passe(debut, fin, longueur, inclure_majuscules, inclure_minus
         caracteres_centraux += string.ascii_lowercase
     if inclure_chiffres:
         caracteres_centraux += string.digits
-    if inclure_speciaux:
+    if inclure_caracteres_speciaux:
         caracteres_centraux += string.punctuation
 
     # Générer une séquence aléatoire de caractères pour la partie centrale
@@ -20,42 +20,62 @@ def generer_mot_de_passe(debut, fin, longueur, inclure_majuscules, inclure_minus
     mot_de_passe = debut + caracteres_centraux + fin
     return mot_de_passe
 
-def enregistrer_mot_dans_fichier(mot, fichier):
-    with open(fichier, 'w') as f:
-        f.write(mot)
-
-def charger_mot_de_fichier(fichier):
-    if os.path.exists(fichier):
-        with open(fichier, 'r') as f:
-            return f.read()
-    else:
-        return None
+def enregistrer_dans_fichier(donnees, chemin_fichier):
+    with open(chemin_fichier, 'a') as fichier:
+        fichier.write(donnees + '\n')
 
 def main():
-    debut_file = 'debut.txt'
-    fin_file = 'fin.txt'
+    fichier_debut = 'debut.txt'
+    fichier_fin = 'fin.txt'
+    fichier_sortie_base = 'mot_de_passe_'
+    extension_fichier_sortie = '.txt'
 
-    debut = charger_mot_de_fichier(debut_file)
-    fin = charger_mot_de_fichier(fin_file)
+    debut = None
+    fin = None
+
+    try:
+        with open(fichier_debut, 'r') as fichier:
+            debut = fichier.read().strip()
+    except FileNotFoundError:
+        pass
+
+    try:
+        with open(fichier_fin, 'r') as fichier:
+            fin = fichier.read().strip()
+    except FileNotFoundError:
+        pass
 
     if debut is None:
         debut = input("Entrez le mot pour le début du mot de passe : ")
-        enregistrer_mot_dans_fichier(debut, debut_file)
+        with open(fichier_debut, 'w') as fichier:
+            fichier.write(debut)
 
     if fin is None:
         fin = input("Entrez le mot pour la fin du mot de passe : ")
-        enregistrer_mot_dans_fichier(fin, fin_file)
+        with open(fichier_fin, 'w') as fichier:
+            fichier.write(fin)
 
     longueur = int(input("Entrez le nombre de caractères entre les deux mots : "))
 
     inclure_majuscules = input("Voulez-vous inclure des majuscules ? (Oui/Non) ").lower() == 'oui'
     inclure_minuscules = input("Voulez-vous inclure des minuscules ? (Oui/Non) ").lower() == 'oui'
     inclure_chiffres = input("Voulez-vous inclure des chiffres ? (Oui/Non) ").lower() == 'oui'
-    inclure_speciaux = input("Voulez-vous inclure des caractères spéciaux ? (Oui/Non) ").lower() == 'oui'
+    inclure_caracteres_speciaux = input("Voulez-vous inclure des caractères spéciaux ? (Oui/Non) ").lower() == 'oui'
 
-    mot_de_passe = generer_mot_de_passe(debut, fin, longueur, inclure_majuscules, inclure_minuscules, inclure_chiffres, inclure_speciaux)
+    fichier_sortie = fichier_sortie_base + extension_fichier_sortie
+    compteur = 1
 
-    print("Mot de passe généré:", mot_de_passe)
+    while os.path.exists(fichier_sortie):
+        compteur += 1
+        fichier_sortie = f"{fichier_sortie_base}_{compteur:02d}{extension_fichier_sortie}"
+
+    with open(fichier_sortie, 'w') as fichier:
+        for i in range(1, 6):
+            mot_de_passe = generer_mot_de_passe(debut, fin, longueur, inclure_majuscules, inclure_minuscules, inclure_chiffres, inclure_caracteres_speciaux)
+            enregistrer_dans_fichier(mot_de_passe, fichier_sortie)
+            print(f"Mot de passe généré {i} : {mot_de_passe}")
+
+    print(f"Mots de passe enregistrés dans {fichier_sortie}")
 
 if __name__ == "__main__":
     main()
